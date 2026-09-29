@@ -232,8 +232,8 @@
       "cls": "aud-tier3",
       "jira_key": "CO-6297",
       "jira_url": "https://czi.atlassian.net/browse/CO-6297",
-      "jira_status": "Backlog",
-      "jira_category": "new",
+      "jira_status": "In Progress",
+      "jira_category": "indeterminate",
       "jira_overdue": false
     },
     {
