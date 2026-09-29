@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GPT Retirement & Plugin Migration — Program Timeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#EEF1F3;
+    --panel:#FFFFFF;
+    --ink:#17212B;
+    --muted:#5B6770;
+    --faint:#8A949C;
+    --grid:#E1E6EA;
+    --grid-strong:#C7CFD5;
+    --accent:#C1442E;
+    --band:#F4A94433;
+
+    --discovery:#4C6FA3;
+    --discovery-soft:#4C6FA31A;
+    --config:#7A5EA3;
+    --config-soft:#7A5EA31A;
+    --migration:#1F8A70;
+    --migration-soft:#1F8A701A;
+    --validation:#B8802E;
+    --validation-soft:#B8802E1A;
+    --hypercare:#7C8892;
+    --hypercare-soft:#7C88921A;
+
+    --aud-owners:#4C6FA3;
+    --aud-tier3:#7C8892;
+    --aud-tier1:#1F8A70;
+    --aud-all:#7A5EA3;
+    --aud-nudge:#C1442E;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    padding:36px 36px 48px;
+  }
+
+  .sheet{
+    max-width:1580px;
+    margin:0 auto;
+    background:var(--panel);
+    border:1px solid var(--grid-strong);
+    border-radius:4px;
+    overflow:hidden;
+  }
+
+  /* ---------- Header ---------- */
+  .header{
+    padding:34px 40px 26px;
+    border-bottom:1px solid var(--grid);
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:24px;
+    flex-wrap:wrap;
+  }
+  .header h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-optical-sizing:auto;
+    font-size:32px;
+    letter-spacing:-0.01em;
+    margin:0 0 6px;
+    color:var(--ink);
+  }
+  .header p.sub{
+    margin:0;
+    color:var(--muted);
+    font-size:14.5px;
+    max-width:640px;
+    line-height:1.5;
+  }
+  .header .meta{
+    text-align:right;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.9;
+    white-space:nowrap;
+  }
+  .header .meta b{color:var(--ink); font-weight:600;}
+
+  /* ---------- Scroll wrapper ---------- */
+  .scroll{
+    overflow-x:auto;
+    padding-bottom:6px;
+  }
+  .canvas{
+    min-width:1400px;
+    position:relative;
+    padding:0 40px 8px;
+  }
+
+  /* ---------- Axis ---------- */
+  .axis{
+    position:relative;
+    height:46px;
+    margin-left:190px;
+    border-bottom:1px solid var(--grid-strong);
+  }
+  .axis .month{
+    position:absolute;
+    top:4px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    font-weight:500;
+    color:var(--ink);
+    padding-left:2px;
+    border-left:1px solid var(--grid-strong);
+    height:38px;
+  }
+  .axis .week-tick{
+    position:absolute;
+    bottom:0;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    color:var(--faint);
+    transform:translateX(-50%);
+  }
+
+  /* ---------- Rows ---------- */
+  .row{
+    position:relative;
+    display:flex;
+    align-items:stretch;
+    border-bottom:1px solid var(--grid);
+  }
+  .row.section-gap{ height:14px; border-bottom:none; }
+  .rowlabel{
+    width:190px;
+    flex:0 0 190px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding:10px 16px 10px 0;
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  .rowlabel span.sub{
+    display:block;
+    font-weight:400;
+    font-size:11px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+  .track{
+    position:relative;
+    flex:1 1 auto;
+    min-height:52px;
+  }
+  .track.tall{min-height:40px;}
+  .track.milestone-track{min-height:58px;}
+  .track.comms-track{min-height:44px;}
+
+  .section-title{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.04em;
+    color:var(--faint);
+    padding:14px 0 4px 0;
+    margin-left:190px;
+  }
+
+  /* gridlines drawn behind rows, spanning full canvas height via pseudo layer */
+  .gridlines{
+    position:absolute;
+    top:0; bottom:0;
+    left:190px; right:0;
+    pointer-events:none;
+    z-index:0;
+  }
+  .gridlines .vline{
+    position:absolute;
+    top:0; bottom:0;
+    width:1px;
+    background:var(--grid);
+  }
+  .gridlines .vline.strong{ background:var(--grid-strong); }
+  .gridlines .band{
+    position:absolute;
+    top:0; bottom:0;
+    background:repeating-linear-gradient(135deg, var(--band) 0 6px, transparent 6px 12px);
+    border-left:1px dashed #C9902F55;
+    border-right:1px dashed #C9902F55;
+  }
+  .gridlines .band-label{
+    position:absolute;
+    top:52px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:9.5px;
+    color:#9A6A1F;
+    white-space:nowrap;
+    transform:rotate(90deg);
+    transform-origin:left top;
+  }
+
+  /* ---------- Bars ---------- */
+  .bar{
+    position:absolute;
+    top:10px;
+    height:32px;
+    border-radius:3px;
+    display:flex;
+    align-items:center;
+    padding:0 10px;
+    font-size:12px;
+    font-weight:600;
+    color:#fff;
+    white-space:nowrap;
+    overflow:hidden;
+    cursor:default;
+    box-shadow:0 1px 2px rgba(23,33,43,0.14);
+  }
+  .bar .bar-sub{ font-weight:400; opacity:0.85; margin-left:7px; font-size:11px; }
+  .bar-caption{
+    position:absolute;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    color:var(--faint);
+    white-space:nowrap;
+  }
+  .bar-outside-label{
+    position:absolute;
+    height:32px;
+    display:flex;
+    align-items:center;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink);
+    white-space:nowrap;
+    cursor:default;
+  }
+  .bar-outside-label.right-align{ justify-content:flex-end; text-align:right; }
+
+  .phase-discovery{ background:var(--discovery); }
+  .phase-config{ background:var(--config); }
+  .phase-migration{ background:var(--migration); }
+  .phase-validation{ background:var(--validation); }
+  .phase-hypercare{ background:var(--hypercare); }
+
+  .test-bar{
+    top:9px; height:22px; border-radius:3px;
+    display:flex; align-items:center; padding:0 9px;
+    font-size:11px; font-weight:500; color:#fff;
+    box-shadow:0 1px 2px rgba(23,33,43,0.12);
+  }
+  .test-pilot{ background:var(--migration); opacity:0.55; }
+  .test-tier1{ background:var(--migration); opacity:0.9; }
+  .test-general{ background:var(--migration); opacity:0.32; color:var(--ink);}
+
+  .test-lane{ min-height:96px; }
+
+  /* ---------- Milestones ---------- */
+  .milestone{
+    position:absolute;
+    top:6px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    transform:translateX(-50%);
+    width:170px;
+  }
+  .milestone .diamond{
+    width:16px; height:16px;
+    background:var(--accent);
+    transform:rotate(45deg);
+    box-shadow:0 1px 3px rgba(193,68,46,0.5);
+  }
+  .milestone .m-date{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10px;
+    color:var(--accent);
+    margin-top:6px;
+    font-weight:500;
+  }
+  .milestone .m-name{
+    font-size:11.5px;
+    font-weight:600;
+    text-align:center;
+    color:var(--ink);
+    margin-top:2px;
+    line-height:1.25;
+  }
+
+  /* ---------- Comms markers ---------- */
+  .comm-dot{
+    position:absolute;
+    top:14px;
+    width:13px; height:13px;
+    border-radius:50%;
+    border:2.5px solid #fff;
+    box-shadow:0 0 0 1.5px currentColor, 0 1px 3px rgba(0,0,0,0.25);
+    transform:translateX(-50%);
+    cursor:pointer;
+  }
+  .aud-owners{ background:var(--aud-owners); color:var(--aud-owners); }
+  .aud-tier3{ background:var(--aud-tier3); color:var(--aud-tier3); }
+  .aud-tier1{ background:var(--aud-tier1); color:var(--aud-tier1); }
+  .aud-all{ background:var(--aud-all); color:var(--aud-all); }
+  .aud-nudge{ background:var(--aud-nudge); color:var(--aud-nudge); }
+
+  /* ---------- Office hours ---------- */
+  .oh-bar{
+    position:absolute;
+    top:14px; height:16px;
+    border-radius:3px;
+    background:repeating-linear-gradient(135deg, #1F8A7055 0 5px, #1F8A7022 5px 10px);
+    border:1px solid #1F8A7088;
+  }
+  .oh-double{
+    position:absolute;
+    top:14px; height:16px;
+    border-radius:3px;
+    background:repeating-linear-gradient(135deg, #1F8A70AA 0 4px, #1F8A7066 4px 8px);
+    border:1px solid #1F8A70;
+  }
+
+  /* ---------- Tooltip ---------- */
+  .tooltip{
+    position:fixed;
+    display:none;
+    max-width:260px;
+    background:var(--ink);
+    color:#fff;
+    padding:10px 12px;
+    border-radius:4px;
+    font-size:12px;
+    line-height:1.45;
+    z-index:50;
+    pointer-events:none;
+    box-shadow:0 6px 18px rgba(0,0,0,0.25);
+  }
+  .tooltip b{ display:block; font-size:12.5px; margin-bottom:3px; }
+  .tooltip .tt-date{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    opacity:0.7;
+    margin-top:5px;
+  }
+
+  /* ---------- Legend ---------- */
+  .legend{
+    padding:22px 40px 30px;
+    border-top:1px solid var(--grid);
+    display:flex;
+    flex-wrap:wrap;
+    gap:28px 34px;
+  }
+  .legend .group{ min-width:180px; }
+  .legend .group h4{
+    margin:0 0 9px;
+    font-size:11px;
+    font-weight:600;
+    color:var(--muted);
+    text-transform:none;
+    letter-spacing:0.01em;
+  }
+  .legend .item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:12.5px;
+    color:var(--ink);
+    margin-bottom:6px;
+  }
+  .legend .swatch{
+    width:12px; height:12px;
+    border-radius:3px;
+    flex:0 0 12px;
+  }
+  .legend .dot{ border-radius:50%; }
+  .legend .diamond-sw{
+    width:10px; height:10px;
+    background:var(--accent);
+    transform:rotate(45deg);
+    flex:0 0 10px;
+  }
+
+  /* ---------- Footnotes ---------- */
+  .footnotes{
+    padding:20px 40px 30px;
+    border-top:1px solid var(--grid);
+    font-size:12px;
+    color:var(--muted);
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px 40px;
+    line-height:1.5;
+  }
+  .footnotes .fn b{ color:var(--ink); font-weight:600; }
+
+  .status-badge{
+    position:absolute; top:-4px; right:-4px;
+    width:10px; height:10px; border-radius:50%;
+    border:2px solid #fff;
+    box-shadow:0 0 0 1px rgba(0,0,0,0.18);
+    z-index:5;
+  }
+  .status-done{ background:#1F8A70; }
+  .status-progress{ background:#4C6FA3; }
+  .status-todo{ background:#B8C0C6; }
+  .status-overdue{ background:#C1442E; }
+  .sync-banner{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:11px;
+    color:var(--muted);
+    text-align:right;
+    margin-top:4px;
+  }
+
+  @media (max-width:900px){
+    body{padding:16px;}
+    .header{padding:24px 20px;}
+    .legend, .footnotes{padding-left:20px; padding-right:20px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+
+  <div class="header">
+    <div>
+      <h1>GPT Retirement &amp; Plugin Migration</h1>
+      <p class="sub">Program timeline across delivery phases, testing, and communications — from initial inventory through post-retirement hypercare.</p>
+    </div>
+    <div class="meta">
+      <div><b>Owner:</b> Collaboration Systems + L&amp;D</div>
+      <div><b>Window:</b> Sep 28 &ndash; Dec 18, 2026</div>
+      <div><b>Retirement:</b> Dec 11, 2026</div>
+      <div><b>Jira Epic:</b> <a id="epic-link" href="#" target="_blank" style="color:var(--migration);">&mdash;</a></div>
+      <div class="sync-banner" id="sync-banner"></div>
+    </div>
+  </div>
+
+  <div class="scroll">
+    <div class="canvas" id="canvas">
+
+      <div class="axis" id="axis"></div>
+
+      <div class="gridlines" id="gridlines"></div>
+
+      <div class="section-title">Milestones</div>
+      <div class="row">
+        <div class="rowlabel">Key dates<span class="sub">Fixed program anchors</span></div>
+        <div class="track milestone-track" id="track-milestones"></div>
+      </div>
+
+      <div class="section-title">Delivery phases</div>
+      <div class="row">
+        <div class="rowlabel">Project phases<span class="sub">Collaboration Systems</span></div>
+        <div class="track" id="track-phases" style="min-height:200px;"></div>
+      </div>
+
+      <div class="section-title">Validation &amp; testing plan</div>
+      <div class="row">
+        <div class="rowlabel">Testing phases<span class="sub">Pilot &rarr; Tier 1 &rarr; General</span></div>
+        <div class="track test-lane" id="track-testing"></div>
+      </div>
+
+      <div class="section-title">Change management</div>
+      <div class="row">
+        <div class="rowlabel">Communications<span class="sub">Click a dot to open its Jira task</span></div>
+        <div class="track comms-track" id="track-comms"></div>
+      </div>
+      <div class="row">
+        <div class="rowlabel">Office hours<span class="sub">Weekly &rarr; 2&times;/week at peak</span></div>
+        <div class="track" id="track-oh" style="min-height:44px;"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="group">
+      <h4>Delivery phases</h4>
+      <div class="item"><span class="swatch" style="background:var(--discovery)"></span>Discovery &amp; Analysis</div>
+      <div class="item"><span class="swatch" style="background:var(--config)"></span>Config &amp; Readiness</div>
+      <div class="item"><span class="swatch" style="background:var(--migration)"></span>Migration Execution</div>
+      <div class="item"><span class="swatch" style="background:var(--validation)"></span>Validation &amp; Close-Out</div>
+      <div class="item"><span class="swatch" style="background:var(--hypercare)"></span>Hypercare</div>
+    </div>
+    <div class="group">
+      <h4>Milestones</h4>
+      <div class="item"><span class="diamond-sw"></span>Fixed leadership / OpenAI dates</div>
+      <h4 style="margin-top:14px;">Testing intensity</h4>
+      <div class="item"><span class="swatch" style="background:var(--migration);opacity:.55"></span>Phase A &middot; Pilot</div>
+      <div class="item"><span class="swatch" style="background:var(--migration);opacity:.85"></span>Phase B &middot; Tier 1</div>
+      <div class="item"><span class="swatch" style="background:var(--migration);opacity:.35"></span>Phase C &middot; General</div>
+    </div>
+    <div class="group">
+      <h4>Communications audience</h4>
+      <div class="item"><span class="swatch dot" style="background:var(--aud-owners)"></span>GPT owners</div>
+      <div class="item"><span class="swatch dot" style="background:var(--aud-tier1)"></span>Tier 1 owners</div>
+      <div class="item"><span class="swatch dot" style="background:var(--aud-tier3)"></span>Tier 3 owners</div>
+      <div class="item"><span class="swatch dot" style="background:var(--aud-all)"></span>All users</div>
+      <div class="item"><span class="swatch dot" style="background:var(--aud-nudge)"></span>Non-responders (nudge)</div>
+    </div>
+    <div class="group">
+      <h4>Live Jira status</h4>
+      <div class="item"><span class="swatch dot" style="background:#1F8A70"></span>Done</div>
+      <div class="item"><span class="swatch dot" style="background:#4C6FA3"></span>In progress</div>
+      <div class="item"><span class="swatch dot" style="background:#B8C0C6"></span>To do</div>
+      <div class="item"><span class="swatch dot" style="background:#C1442E"></span>Overdue</div>
+    </div>
+    <div class="group">
+      <h4>Other markers</h4>
+      <div class="item"><span class="swatch" style="background:repeating-linear-gradient(135deg,#F4A944 0 4px,transparent 4px 8px);border:1px solid #C9902F"></span>Thanksgiving buffer week</div>
+      <div class="item"><span class="swatch" style="background:repeating-linear-gradient(135deg,#1F8A70AA 0 4px,#1F8A7066 4px 8px);border:1px solid #1F8A70"></span>Office hours 2&times;/week</div>
+    </div>
+  </div>
+
+  <div class="footnotes">
+    <div class="fn"><b>Overlap by design.</b> Migration Execution opens Oct 19, a week before Configuration &amp; Readiness finishes on Oct 23 &mdash; owners who are ready can start early rather than waiting on full workspace polish.</div>
+    <div class="fn"><b>Buffer before retirement.</b> Validation targets Dec 4, one full week ahead of the Dec 11 retirement date, to absorb late fixes.</div>
+    <div class="fn"><b>Two fixed exposure windows.</b> Drafts must publish before the Oct 26 Creation Cutoff, and Tier 1 GPTs must be migrated by Nov 20 to leave time for validation.</div>
+    <div class="fn"><b>Holiday-aware scheduling.</b> The week of Nov 23 is reserved as buffer for Thanksgiving; office hours double up the weeks immediately before and after it.</div>
+  </div>
+
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const DATA = __DATA_JSON__;
+
+const epicLink = document.getElementById('epic-link');
+if(DATA.jira_epic){
+  epicLink.textContent = DATA.jira_epic.key;
+  epicLink.href = DATA.jira_epic.url;
+}
+const syncBanner = document.getElementById('sync-banner');
+if(DATA.synced_at){
+  syncBanner.textContent = 'Synced from Jira: ' + DATA.synced_at;
+}
+
+function statusClass(item){
+  if(!item || !item.jira_category) return null;
+  if(item.jira_overdue) return 'status-overdue';
+  if(item.jira_category === 'done') return 'status-done';
+  if(item.jira_category === 'indeterminate') return 'status-progress';
+  return 'status-todo';
+}
+function statusLabel(item){
+  if(!item || !item.jira_status) return '';
+  const label = item.jira_overdue ? item.jira_status + ' (overdue)' : item.jira_status;
+  return ` &middot; ${label}`;
+}
+function addBadge(parentEl, item){
+  const cls = statusClass(item);
+  if(!cls) return;
+  const badge = document.createElement('div');
+  badge.className = 'status-badge ' + cls;
+  parentEl.appendChild(badge);
+}
+
+const canvasEl = document.getElementById('canvas');
+const tooltipEl = document.getElementById('tooltip');
+
+function showTip(html, evt){
+  tooltipEl.innerHTML = html;
+  tooltipEl.style.display = 'block';
+  positionTip(evt);
+}
+function positionTip(evt){
+  const pad = 16;
+  let x = evt.clientX + pad;
+  let y = evt.clientY + pad;
+  const rect = tooltipEl.getBoundingClientRect();
+  if(x + rect.width > window.innerWidth - 10) x = evt.clientX - rect.width - pad;
+  if(y + rect.height > window.innerHeight - 10) y = evt.clientY - rect.height - pad;
+  tooltipEl.style.left = x + 'px';
+  tooltipEl.style.top = y + 'px';
+}
+function hideTip(){ tooltipEl.style.display = 'none'; }
+
+// ---- Axis (months + week ticks) ----
+const axisEl = document.getElementById('axis');
+DATA.months.forEach(m=>{
+  const el = document.createElement('div');
+  el.className = 'month';
+  el.style.left = m.left + '%';
+  el.textContent = m.label;
+  axisEl.appendChild(el);
+});
+DATA.weeks.forEach(w=>{
+  const el = document.createElement('div');
+  el.className = 'week-tick';
+  el.style.left = w.left + '%';
+  el.textContent = w.date;
+  axisEl.appendChild(el);
+});
+
+// ---- Gridlines + Thanksgiving band (span full canvas) ----
+const gridlinesEl = document.getElementById('gridlines');
+DATA.weeks.forEach(w=>{
+  const el = document.createElement('div');
+  el.className = 'vline';
+  el.style.left = w.left + '%';
+  gridlinesEl.appendChild(el);
+});
+DATA.months.forEach(m=>{
+  const el = document.createElement('div');
+  el.className = 'vline strong';
+  el.style.left = m.left + '%';
+  gridlinesEl.appendChild(el);
+});
+DATA.bands.forEach(b=>{
+  const el = document.createElement('div');
+  el.className = 'band';
+  el.style.left = b.left + '%';
+  el.style.width = b.width + '%';
+  gridlinesEl.appendChild(el);
+  const lbl = document.createElement('div');
+  lbl.className = 'band-label';
+  lbl.style.left = (b.left) + '%';
+  lbl.textContent = b.label;
+  gridlinesEl.appendChild(lbl);
+});
+// set gridline container height to canvas height after render
+requestAnimationFrame(()=>{ gridlinesEl.style.height = canvasEl.scrollHeight + 'px'; });
+
+// ---- Milestones ----
+const tm = document.getElementById('track-milestones');
+DATA.milestones.forEach(m=>{
+  const el = document.createElement('div');
+  el.className = 'milestone';
+  el.style.left = m.left + '%';
+  el.innerHTML = `<div class="diamond"></div><div class="m-date">${m.date}</div><div class="m-name">${m.name}</div>`;
+  el.addEventListener('mousemove', e=>showTip(`<b>${m.name}</b>${m.desc}<div class="tt-date">${m.date}, 2026${statusLabel(m)}</div>`, e));
+  el.addEventListener('mouseleave', hideTip);
+  addBadge(el.querySelector('.diamond'), m);
+  tm.appendChild(el);
+});
+
+// ---- Phases ----
+const tp = document.getElementById('track-phases');
+const PHASE_STEP = 48;
+DATA.phases.forEach((p,i)=>{
+  const top = 10 + i*PHASE_STEP;
+  const el = document.createElement('div');
+  el.className = 'bar ' + p.cls;
+  el.style.left = p.left + '%';
+  el.style.width = p.width + '%';
+  el.style.top = top + 'px';
+  const narrow = p.width < 10;
+  if(!narrow) el.innerHTML = `${p.name}`;
+  el.addEventListener('mousemove', e=>showTip(`<b>${p.name}</b>${p.desc}<div class="tt-date">${p.start} &ndash; ${p.end}, 2026${statusLabel(p)}</div>`, e));
+  el.addEventListener('mouseleave', hideTip);
+  addBadge(el, p);
+  tp.appendChild(el);
+
+  if(narrow){
+    const outLabel = document.createElement('div');
+    const nearEdge = (p.left + p.width) > 85;
+    outLabel.className = 'bar-outside-label' + (nearEdge ? ' right-align' : '');
+    if(nearEdge){
+      outLabel.style.right = 'calc(' + (100 - p.left) + '% + 8px)';
+    } else {
+      outLabel.style.left = 'calc(' + (p.left + p.width) + '% + 8px)';
+    }
+    outLabel.style.top = top + 'px';
+    outLabel.textContent = p.name;
+    outLabel.addEventListener('mousemove', e=>showTip(`<b>${p.name}</b>${p.desc}<div class="tt-date">${p.start} &ndash; ${p.end}, 2026</div>`, e));
+    outLabel.addEventListener('mouseleave', hideTip);
+    tp.appendChild(outLabel);
+  }
+
+  const cap = document.createElement('div');
+  cap.className = 'bar-caption';
+  if(p.left + p.width > 90){
+    cap.style.right = 'calc(' + (100 - p.left - p.width) + '%)';
+    cap.style.textAlign = 'right';
+  } else {
+    cap.style.left = p.left + '%';
+  }
+  cap.style.top = (top + 34) + 'px';
+  cap.textContent = p.range;
+  tp.appendChild(cap);
+});
+tp.style.minHeight = (DATA.phases.length*PHASE_STEP + 14) + 'px';
+
+// ---- Testing ----
+const tt = document.getElementById('track-testing');
+DATA.testing.forEach((t,i)=>{
+  const el = document.createElement('div');
+  el.className = 'test-bar ' + t.cls;
+  el.style.left = t.left + '%';
+  el.style.width = t.width + '%';
+  el.style.top = (9 + i*20) + 'px';
+  el.textContent = t.name;
+  el.addEventListener('mousemove', e=>showTip(`<b>${t.name}</b>${t.desc}<div class="tt-date">${t.start} &ndash; ${t.end}, 2026${statusLabel(t)}</div>`, e));
+  el.addEventListener('mouseleave', hideTip);
+  addBadge(el, t);
+  tt.appendChild(el);
+});
+tt.style.minHeight = (DATA.testing.length*20 + 20) + 'px';
+
+// ---- Comms ----
+const tc = document.getElementById('track-comms');
+DATA.comms.forEach(c=>{
+  const el = document.createElement('div');
+  el.className = 'comm-dot ' + c.cls;
+  el.style.left = c.left + '%';
+  el.style.cursor = 'pointer';
+  el.addEventListener('mousemove', e=>showTip(`<b>${c.audience}</b>${c.message}<div class="tt-date">${c.date}, 2026 &middot; ${c.jira_key}${statusLabel(c)} &mdash; click to open</div>`, e));
+  el.addEventListener('mouseleave', hideTip);
+  el.addEventListener('click', ()=>window.open(c.jira_url, '_blank'));
+  addBadge(el, c);
+  tc.appendChild(el);
+});
+
+// ---- Office hours ----
+const toh = document.getElementById('track-oh');
+const oh = DATA.office_hours;
+const ohEl = document.createElement('div');
+ohEl.className = 'oh-bar';
+ohEl.style.left = oh.left + '%';
+ohEl.style.width = oh.width + '%';
+ohEl.addEventListener('mousemove', e=>showTip(`<b>Office hours</b>Weekly, Oct 22 &ndash; Dec 18. Twice-weekly during peak demand (weeks of Nov 16 &amp; Nov 30).`, e));
+ohEl.addEventListener('mouseleave', hideTip);
+toh.appendChild(ohEl);
+oh.double_segments.forEach(s=>{
+  const el = document.createElement('div');
+  el.className = 'oh-double';
+  el.style.left = s.left + '%';
+  el.style.width = s.width + '%';
+  toh.appendChild(el);
+});
+const ohCap = document.createElement('div');
+ohCap.className = 'bar-caption';
+ohCap.style.left = oh.left + '%';
+ohCap.style.top = '34px';
+ohCap.textContent = 'Oct 22 \u2013 Dec 18 \u00b7 weekly, 2\u00d7/week at peak';
+toh.appendChild(ohCap);
+toh.style.minHeight = '52px';
+
+requestAnimationFrame(()=>{ gridlinesEl.style.height = canvasEl.scrollHeight + 'px'; });
+</script>
+
+</body>
+</html>
