@@ -37,20 +37,28 @@ def pct_width(d1, d2):
 
 
 def fetch_jira_statuses(keys):
-    """Fetch status + due date for a list of issue keys in one JQL call."""
+    """Fetch status + due date for a list of issue keys in one JQL call.
+
+    Uses Jira Cloud's newer /rest/api/3/search/jql endpoint. The older
+    /rest/api/3/search endpoint was retired by Atlassian and now returns
+    410 Gone, so this must not be reverted to the old URL/pagination style.
+    """
     jql = f'"Epic Link" = {EPIC_KEY} OR parent = {EPIC_KEY}'
-    url = f"{JIRA_BASE_URL}/rest/api/3/search"
+    url = f"{JIRA_BASE_URL}/rest/api/3/search/jql"
     out = {}
-    start_at = 0
+    next_page_token = None
     while True:
+        params = {
+            "jql": jql,
+            "fields": "summary,status,duedate",
+            "maxResults": 100,
+        }
+        if next_page_token:
+            params["nextPageToken"] = next_page_token
+
         resp = requests.get(
             url,
-            params={
-                "jql": jql,
-                "fields": "summary,status,duedate",
-                "maxResults": 100,
-                "startAt": start_at,
-            },
+            params=params,
             auth=(JIRA_EMAIL, JIRA_API_TOKEN),
             timeout=30,
         )
@@ -70,9 +78,9 @@ def fetch_jira_statuses(keys):
                 "duedate": due,
                 "overdue": overdue,
             }
-        start_at += len(payload["issues"])
-        if start_at >= payload["total"]:
+        if payload.get("isLast", True) or not payload.get("nextPageToken"):
             break
+        next_page_token = payload["nextPageToken"]
     return out
 
 
