@@ -77,8 +77,8 @@
       "desc": "Export inventory, impact analysis, tiering, initial awareness message",
       "range": "Sep 28\u2013Oct 9",
       "jira_key": "CO-6306",
-      "jira_status": "Backlog",
-      "jira_category": "new",
+      "jira_status": "In Progress",
+      "jira_category": "indeterminate",
       "jira_overdue": false
     },
     {
