@@ -222,7 +222,7 @@
       "jira_url": "https://czi.atlassian.net/browse/CO-6296",
       "jira_status": "Backlog",
       "jira_category": "new",
-      "jira_overdue": false
+      "jira_overdue": true
     },
     {
       "left": 18.824,
@@ -358,5 +358,5 @@
     "key": "CO-6295",
     "url": "https://czi.atlassian.net/browse/CO-6295"
   },
-  "synced_at": "2026-10-02"
+  "synced_at": "2026-10-03"
 }
