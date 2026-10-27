@@ -157,7 +157,7 @@
       "jira_key": "CO-6310",
       "jira_status": "Backlog",
       "jira_category": "new",
-      "jira_overdue": false
+      "jira_overdue": true
     },
     {
       "name": "Retirement",
@@ -358,5 +358,5 @@
     "key": "CO-6295",
     "url": "https://czi.atlassian.net/browse/CO-6295"
   },
-  "synced_at": "2026-10-26"
+  "synced_at": "2026-10-27"
 }
